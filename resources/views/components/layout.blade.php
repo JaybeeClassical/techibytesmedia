@@ -3,70 +3,52 @@
     'description' => 'Techibytes Media is a software development and digital marketing agency in Abuja, Nigeria and Seattle, USA. Web development, mobile apps, UI/UX design, SEO and branding.',
     'canonical' => null,
     'image' => null,
+    'type' => 'website',
+    // Structured data: schema.org type of this page, its breadcrumb trail after "Home"
+    // (list of ['name' => ..., 'url' => ...]), extra @graph nodes and the @id of its main entity
+    'pageType' => 'WebPage',
+    'breadcrumbs' => [],
+    'schema' => [],
+    'mainEntity' => null,
 ])
 
 @php
     $siteUrl = rtrim((string) config('app.url'), '/');
     $canonicalUrl = $canonical ?? $siteUrl.(request()->getPathInfo() === '/' ? '/' : request()->getPathInfo());
     $socialImageUrl = $image ?? $siteUrl.'/images/logo/logo-background.png';
-    $organizationId = $siteUrl.'/#organization';
-    $websiteId = $siteUrl.'/#website';
 
-    $structuredData = [
-        '@context' => 'https://schema.org',
-        '@graph' => [
-            [
-                '@type' => 'Organization',
-                '@id' => $organizationId,
-                'name' => 'Techibytes Media',
-                'legalName' => 'Techibytes Media LLC',
-                'url' => $siteUrl.'/',
-                'logo' => $siteUrl.'/images/logo/logo-background.png',
-                'description' => 'A software development and digital marketing agency serving clients from Abuja, Nigeria and Seattle, USA.',
-                'email' => 'info@techibytesmedia.com',
-                'telephone' => '+2349031807262',
-                'contactPoint' => [
-                    [
-                        '@type' => 'ContactPoint',
-                        'telephone' => '+2349031807262',
-                        'contactType' => 'customer service',
-                        'areaServed' => 'NG',
-                        'availableLanguage' => 'en',
-                    ],
-                ],
-                'sameAs' => [
-                    'https://www.facebook.com/techibytesmedia',
-                    'https://x.com/techibytes_hq',
-                    'https://www.instagram.com/techibytes',
-                    'https://www.linkedin.com/company/techibytesmedia',
-                ],
-                'address' => [
-                    [
-                        '@type' => 'PostalAddress',
-                        'streetAddress' => 'Suite 303, 3rd Floor, Ammah Plaza, Near NAF Conference Center',
-                        'addressLocality' => 'Abuja',
-                        'addressCountry' => 'NG',
-                    ],
-                    [
-                        '@type' => 'PostalAddress',
-                        'streetAddress' => '600 1st Ave, Ste 102 #1105',
-                        'addressLocality' => 'Seattle',
-                        'addressRegion' => 'WA',
-                        'postalCode' => '98104',
-                        'addressCountry' => 'US',
-                    ],
-                ],
-            ],
-            [
-                '@type' => 'WebSite',
-                '@id' => $websiteId,
-                'url' => $siteUrl.'/',
-                'name' => 'Techibytes Media',
-                'publisher' => ['@id' => $organizationId],
-                'inLanguage' => 'en',
-            ],
-        ],
+    // Services dropdown, mobile sub-menu and footer column all read from config/service-pages.php
+    $serviceNav = collect(config('service-pages.items', []))
+        ->map(fn (array $service, string $slug): array => [
+            'label' => $service['nav_label'],
+            'summary' => $service['nav_summary'],
+            'url' => route('services.show', $slug),
+            'active' => request()->routeIs('services.show') && request()->route('service') === $slug,
+        ])
+        ->push([
+            'label' => 'Graphic Design',
+            'summary' => 'Logos, social and print design',
+            'url' => route('graphics'),
+            'active' => request()->routeIs('graphics'),
+        ])
+        ->values();
+    $servicesActive = request()->routeIs('services', 'services.show', 'graphics');
+
+    $primaryNav = [
+        'home' => ['label' => 'Home', 'active' => request()->routeIs('home')],
+        'services' => ['label' => 'Services', 'active' => $servicesActive],
+        'portfolio' => ['label' => 'Work', 'active' => request()->routeIs('portfolio', 'portfolio.show')],
+        'blog' => ['label' => 'Blog', 'active' => request()->routeIs('blog', 'blog.show')],
+        'contact' => ['label' => 'Contact', 'active' => request()->routeIs('contact')],
     ];
+
+    $structuredData = \App\Support\StructuredData::encode(array_values(array_filter([
+        \App\Support\StructuredData::organization(),
+        \App\Support\StructuredData::website(),
+        \App\Support\StructuredData::webPage($canonicalUrl, $pageType, $title, $description, $image ?? $socialImageUrl, $breadcrumbs, $mainEntity),
+        $breadcrumbs !== [] ? \App\Support\StructuredData::breadcrumbList($canonicalUrl, $breadcrumbs) : null,
+        ...$schema,
+    ])));
 @endphp
 
 <!doctype html>
@@ -78,10 +60,10 @@
     <title>{{ $title }}</title>
     <meta name="description" content="{{ $description }}">
     <meta name="author" content="Techibytes Media">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="{{ $canonicalUrl }}">
 
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{{ $type }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:title" content="{{ $title }}">
     <meta property="og:description" content="{{ $description }}">
@@ -90,7 +72,7 @@
     <meta property="og:image" content="{{ $socialImageUrl }}">
     <meta property="og:image:alt" content="Techibytes Media">
 
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="{{ $image ? 'summary_large_image' : 'summary' }}">
     <meta name="twitter:title" content="{{ $title }}">
     <meta name="twitter:description" content="{{ $description }}">
     <meta name="twitter:image" content="{{ $socialImageUrl }}">
@@ -102,9 +84,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon_io/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ asset('favicon_io/site.webmanifest') }}">
 
-    @if (request()->routeIs('home'))
-        <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
-    @endif
+    <script type="application/ld+json">{!! $structuredData !!}</script>
 
     {{-- Dark mode is hidden for now; uncomment to re-enable the persisted theme (see also the theme-toggle button below) --}}
     {{--
@@ -133,21 +113,72 @@
             </a>
 
             <nav class="hidden items-center gap-8 text-sm font-medium lg:flex" aria-label="Primary">
-                @foreach ([
-                    'home' => 'Home',
-                    'services' => 'Services',
-                    'portfolio' => 'Work',
-                    'graphics' => 'Graphics',
-                    'contact' => 'Contact',
-                ] as $routeName => $label)
-                    <a
-                        href="{{ route($routeName) }}"
-                        @class([
-                            'link-draw pb-0.5 transition-colors',
-                            'text-accent' => request()->routeIs($routeName),
-                            'text-bone/80 hover:text-bone' => ! request()->routeIs($routeName),
-                        ])
-                    >{{ $label }}</a>
+                @foreach ($primaryNav as $routeName => $item)
+                    @if ($routeName === 'services')
+                        {{-- Services dropdown: opens on hover/focus, or on click of the chevron (see app.js) --}}
+                        <div class="group relative" data-dropdown>
+                            <div class="flex items-center gap-1">
+                                <a
+                                    href="{{ route('services') }}"
+                                    @class([
+                                        'link-draw pb-0.5 transition-colors',
+                                        'text-accent' => $item['active'],
+                                        'text-bone/80 hover:text-bone' => ! $item['active'],
+                                    ])
+                                >{{ $item['label'] }}</a>
+                                <button
+                                    type="button"
+                                    data-dropdown-toggle
+                                    aria-expanded="false"
+                                    aria-controls="services-menu"
+                                    class="flex h-7 w-7 items-center justify-center rounded-full text-bone/70 transition-colors hover:text-accent"
+                                >
+                                    <span class="sr-only">Show all services</span>
+                                    <svg class="h-3.5 w-3.5 transition-transform group-hover:rotate-180 group-data-open:rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div
+                                id="services-menu"
+                                data-testid="services-dropdown"
+                                class="invisible absolute left-1/2 top-full z-50 w-xl -translate-x-1/2 pt-4 opacity-0 transition duration-200 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100 group-data-open:visible group-data-open:opacity-100"
+                            >
+                                <div class="overflow-hidden rounded-2xl border border-line bg-panel shadow-2xl shadow-primary/10">
+                                    <ul class="grid grid-cols-2 gap-1 p-3">
+                                        @foreach ($serviceNav as $serviceLink)
+                                            <li>
+                                                <a
+                                                    href="{{ $serviceLink['url'] }}"
+                                                    @class([
+                                                        'block rounded-xl px-4 py-3 transition-colors hover:bg-ink',
+                                                        'bg-ink' => $serviceLink['active'],
+                                                    ])
+                                                >
+                                                    <span @class(['block font-display text-base font-bold', 'text-accent' => $serviceLink['active']])>{{ $serviceLink['label'] }}</span>
+                                                    <span class="mt-0.5 block text-xs text-muted">{{ $serviceLink['summary'] }}</span>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                    <a href="{{ route('services') }}" class="flex items-center justify-between border-t border-line bg-ink/60 px-7 py-4 text-sm font-semibold text-bone transition-colors hover:text-accent">
+                                        View all services
+                                        <span aria-hidden="true">&rarr;</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <a
+                            href="{{ route($routeName) }}"
+                            @class([
+                                'link-draw pb-0.5 transition-colors',
+                                'text-accent' => $item['active'],
+                                'text-bone/80 hover:text-bone' => ! $item['active'],
+                            ])
+                        >{{ $item['label'] }}</a>
+                    @endif
                 @endforeach
             </nav>
 
@@ -195,22 +226,37 @@
         <div id="mobile-menu" class="relative hidden overflow-hidden border-t border-line bg-ink/95 backdrop-blur-xl lg:hidden">
             <x-hero-grid :show-boxes-on-mobile="true" />
 
-            <nav class="relative flex flex-col gap-1 px-5 py-6" aria-label="Mobile">
-                @foreach ([
-                    'home' => 'Home',
-                    'services' => 'Services',
-                    'portfolio' => 'Work',
-                    'graphics' => 'Graphics',
-                    'contact' => 'Contact',
-                ] as $routeName => $label)
-                    <a
-                        href="{{ route($routeName) }}"
-                        @class([
-                            'rounded-lg px-3 py-3 font-display text-2xl font-bold',
-                            'text-accent' => request()->routeIs($routeName),
-                            'text-bone' => ! request()->routeIs($routeName),
-                        ])
-                    >{{ $label }}</a>
+            <nav class="relative flex flex-col gap-1 px-5 py-6 max-h-[calc(100dvh-5.5rem)] overflow-y-auto" aria-label="Mobile">
+                @foreach ($primaryNav as $routeName => $item)
+                    @if ($routeName === 'services')
+                        <details class="group/services" @if ($item['active']) open @endif>
+                            <summary
+                                @class([
+                                    'flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-3 font-display text-2xl font-bold [&::-webkit-details-marker]:hidden',
+                                    'text-accent' => $item['active'],
+                                    'text-bone' => ! $item['active'],
+                                ])
+                            >
+                                {{ $item['label'] }}
+                                <span class="text-2xl text-accent transition-transform group-open/services:rotate-45" aria-hidden="true">+</span>
+                            </summary>
+                            <div class="mb-2 ml-3 flex flex-col border-l border-line pl-4">
+                                <a href="{{ route('services') }}" @class(['py-2 text-base font-semibold', 'text-accent' => request()->routeIs('services'), 'text-bone' => ! request()->routeIs('services')])>All services</a>
+                                @foreach ($serviceNav as $serviceLink)
+                                    <a href="{{ $serviceLink['url'] }}" @class(['py-2 text-base', 'text-accent' => $serviceLink['active'], 'text-bone/80' => ! $serviceLink['active']])>{{ $serviceLink['label'] }}</a>
+                                @endforeach
+                            </div>
+                        </details>
+                    @else
+                        <a
+                            href="{{ route($routeName) }}"
+                            @class([
+                                'rounded-lg px-3 py-3 font-display text-2xl font-bold',
+                                'text-accent' => $item['active'],
+                                'text-bone' => ! $item['active'],
+                            ])
+                        >{{ $item['label'] }}</a>
+                    @endif
                 @endforeach
             </nav>
         </div>
@@ -223,8 +269,8 @@
     {{-- Footer (navy panel with white logo variant) --}}
     <footer class="bg-primary text-white">
         <div class="mx-auto max-w-7xl px-5 pt-16 sm:px-8">
-            <div class="grid gap-12 pb-16 md:grid-cols-12">
-                <div class="md:col-span-5">
+            <div class="grid gap-12 pb-16 sm:grid-cols-2 md:grid-cols-12">
+                <div class="sm:col-span-2 md:col-span-3">
                     <a href="{{ route('home') }}" class="flex items-center gap-3">
                         <img src="{{ asset('images/logo/logo-white-2.png') }}" alt="Techibytes Media logo" class="h-11 w-11">
                         <span class="font-display text-2xl font-extrabold">
@@ -235,7 +281,7 @@
                         A software development &amp; digital marketing agency crafting websites, apps and brands
                         from Abuja to Seattle since 2020.
                     </p>
-                    <div class="mt-6 flex gap-3">
+                    <div class="mt-6 flex flex-wrap gap-3">
                         @foreach ([
                             'Facebook' => 'https://www.facebook.com/techibytesmedia',
                             'X' => 'https://x.com/techibytes_hq',
@@ -255,14 +301,17 @@
                 <div class="md:col-span-2">
                     <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">Pages</h3>
                     <ul class="mt-4 space-y-3 text-sm">
-                        @foreach ([
-                            'home' => 'Home',
-                            'services' => 'Services',
-                            'portfolio' => 'Work',
-                            'graphics' => 'Graphics',
-                            'contact' => 'Contact',
-                        ] as $routeName => $label)
-                            <li><a href="{{ route($routeName) }}" class="link-draw text-white/80 hover:text-white">{{ $label }}</a></li>
+                        @foreach ($primaryNav as $routeName => $item)
+                            <li><a href="{{ route($routeName) }}" class="link-draw text-white/80 hover:text-white">{{ $item['label'] }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                <div class="md:col-span-3">
+                    <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">Services</h3>
+                    <ul class="mt-4 space-y-3 text-sm">
+                        @foreach ($serviceNav as $serviceLink)
+                            <li><a href="{{ $serviceLink['url'] }}" class="link-draw text-white/80 hover:text-white">{{ $serviceLink['label'] }}</a></li>
                         @endforeach
                     </ul>
                 </div>
@@ -277,14 +326,14 @@
                     <a href="tel:+2349031807262" class="link-draw mt-3 inline-block text-sm text-accent-soft">+234 903 180 7262</a>
                 </div>
 
-                <div class="md:col-span-3">
+                <div class="md:col-span-2">
                     <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">Seattle</h3>
                     <p class="mt-4 text-sm leading-relaxed text-white/80">
                         600 1st Ave, Ste 102 #1105,<br>
                         Seattle, WA 98104
                     </p>
                     <div class="mt-3 flex flex-col items-start gap-2">
-                        <a href="mailto:info@techibytesmedia.com" class="link-draw text-sm text-white/80">info@techibytesmedia.com</a>
+                        <a href="mailto:info@techibytesmedia.com" class="link-draw break-all text-sm text-white/80">info@techibytesmedia.com</a>
                     </div>
                 </div>
             </div>

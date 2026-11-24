@@ -1,6 +1,12 @@
+
+@php
+    $breadcrumbs = [['name' => 'Privacy Policy', 'url' => route('privacy')]];
+@endphp
+
 <x-layout
     title="Privacy Policy | Techibytes Media"
     description="How Techibytes Media handles information across its agency services, websites, applications, digital products and payment features."
+    :breadcrumbs="$breadcrumbs"
 >
     <x-legal-page
         eyebrow="Privacy"

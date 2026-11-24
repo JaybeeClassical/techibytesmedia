@@ -29,6 +29,7 @@ test('public pages render successfully', function (string $routeName, string $ex
     'portfolio' => ['portfolio', 'Work that'],
     'graphics' => ['graphics', 'Design that makes brands'],
     'contact' => ['contact', 'your project.'],
+    'blog' => ['blog', 'Ideas that help brands'],
     'terms' => ['terms', 'Terms and Conditions'],
     'privacy' => ['privacy', 'Privacy Policy'],
     'payment disclosure' => ['payment-services-disclosure', 'Payment Services Disclosure'],
@@ -179,9 +180,9 @@ test('project pages use automatically captured website screenshots', function ()
     $home = $this->get(route('home'))
         ->assertSuccessful();
 
-    foreach ($recent_projects as $project) {
+    foreach ($recent_projects as $project_key => $project) {
         $home
-            ->assertSee($project['url'], false)
+            ->assertSee(route('portfolio.show', $project_key), false)
             ->assertSee($project['screenshot'], false)
             ->assertSee($project['name']);
     }
@@ -192,9 +193,10 @@ test('project pages use automatically captured website screenshots', function ()
         ->assertSee($topfreshcuts['tags'])
         ->assertDontSee('TopFreshCuts — grooming platform');
 
-    foreach ($projects as $project) {
+    foreach ($projects as $project_key => $project) {
         $portfolio
-            ->assertSee($project['url'], false)
+            ->assertSee(route('portfolio.show', $project_key), false)
+            ->assertDontSee('href="' . $project['url'] . '"', false)
             ->assertSee($project['screenshot'], false)
             ->assertSee($project['name']);
     }
@@ -279,7 +281,7 @@ test('services present representative technologies without implying an exhaustiv
         ->assertSee('Adobe Illustrator')
         ->assertSee('And many more');
 
-    expect(mb_substr_count($response->getContent(), 'And many more'))->toBe(7);
+    expect(mb_substr_count($response->getContent(), 'And many more'))->toBe(8);
 });
 
 test('graphics page presents professional design services instead of a self-service product', function (): void {

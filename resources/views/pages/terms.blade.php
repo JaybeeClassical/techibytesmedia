@@ -1,6 +1,12 @@
+
+@php
+    $breadcrumbs = [['name' => 'Terms and Conditions', 'url' => route('terms')]];
+@endphp
+
 <x-layout
     title="Terms and Conditions | Techibytes Media"
     description="Simple terms for using Techibytes Media agency services, websites, applications and digital products, including payment features."
+    :breadcrumbs="$breadcrumbs"
 >
     <x-legal-page
         eyebrow="Legal"

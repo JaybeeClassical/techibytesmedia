@@ -1,6 +1,12 @@
+
+@php
+    $breadcrumbs = [['name' => 'Payment Services Disclosure', 'url' => route('payment-services-disclosure')]];
+@endphp
+
 <x-layout
     title="Payment Services Disclosure | Techibytes Media"
     description="A simple explanation of Techibytes Media payment technology and the role of Flutterwave, Stripe and other payment providers."
+    :breadcrumbs="$breadcrumbs"
 >
     <x-legal-page
         eyebrow="Payments"

@@ -1,6 +1,40 @@
+@use('App\Support\StructuredData')
+
+@php
+    $pageUrl = StructuredData::url(route('graphics', absolute: false));
+    $breadcrumbs = [
+        ['name' => 'Services', 'url' => route('services')],
+        ['name' => 'Graphic Design', 'url' => route('graphics')],
+    ];
+
+    $designServices = [
+        ['title' => 'Logo & Brand Identity', 'desc' => 'Distinctive logos, colour systems, typography and practical brand guidelines that keep your identity consistent.'],
+        ['title' => 'Social Media Creative', 'desc' => 'On-brand social posts, covers, carousels and advertising assets designed for the platforms you use.'],
+        ['title' => 'Campaign Design', 'desc' => 'A unified visual direction for launches, events, promotions and marketing campaigns across every channel.'],
+        ['title' => 'Print & Packaging', 'desc' => 'Business cards, brochures, flyers, signage, merchandise and packaging prepared for professional production.'],
+        ['title' => 'Presentations & Reports', 'desc' => 'Clear, polished pitch decks, company profiles, proposals and reports that make complex ideas easier to understand.'],
+        ['title' => 'Motion Graphics', 'desc' => 'Animated logos, promotional graphics and short-form motion assets that bring your brand to life.'],
+    ];
+
+    $schema = [
+        StructuredData::service(
+            $pageUrl,
+            'Graphic Design & Branding',
+            'Graphic design and branding services',
+            'Professional graphic design and branding services: logos and brand identity, social media creative, campaign design, print and packaging, presentations and motion graphics.',
+            $designServices,
+        ),
+    ];
+
+    $relatedServices = collect(config('service-pages.items', []))->only(['brand-strategy', 'web-development', 'media-ad']);
+@endphp
+
 <x-layout
     title="Graphic Design & Branding Services | Techibytes Media"
     description="Professional graphic design and branding services from Techibytes Media, including logos, social media creative, campaigns, print, packaging, presentations and motion graphics."
+    :breadcrumbs="$breadcrumbs"
+    :schema="$schema"
+    :main-entity="$pageUrl.'#service'"
 >
 
     {{-- Page hero --}}
@@ -8,6 +42,8 @@
         <x-hero-grid />
 
         <div class="relative mx-auto max-w-7xl px-5 sm:px-8">
+            <x-breadcrumbs :items="$breadcrumbs" class="reveal" />
+
             <p class="reveal text-xs font-semibold uppercase tracking-[0.35em] text-accent">
                 Graphic design &amp; branding services
             </p>
@@ -19,7 +55,7 @@
                 communicate clearly, look credible and stay consistent across every touchpoint.
             </p>
             <div class="reveal mt-8" style="--reveal-delay: .3s">
-                <a href="{{ route('contact') }}" class="group inline-flex items-center gap-3 rounded-full bg-primary px-7 py-4 font-semibold text-white transition-transform hover:scale-105">
+                <a href="{{ route('contact', ['service' => 'Graphic Design & Branding']) }}" class="group inline-flex items-center gap-3 rounded-full bg-primary px-7 py-4 font-semibold text-white transition-transform hover:scale-105">
                     Start a design project
                     <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
                 </a>
@@ -51,14 +87,7 @@
         </div>
 
         <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach ([
-                ['title' => 'Logo & Brand Identity', 'desc' => 'Distinctive logos, colour systems, typography and practical brand guidelines that keep your identity consistent.'],
-                ['title' => 'Social Media Creative', 'desc' => 'On-brand social posts, covers, carousels and advertising assets designed for the platforms you use.'],
-                ['title' => 'Campaign Design', 'desc' => 'A unified visual direction for launches, events, promotions and marketing campaigns across every channel.'],
-                ['title' => 'Print & Packaging', 'desc' => 'Business cards, brochures, flyers, signage, merchandise and packaging prepared for professional production.'],
-                ['title' => 'Presentations & Reports', 'desc' => 'Clear, polished pitch decks, company profiles, proposals and reports that make complex ideas easier to understand.'],
-                ['title' => 'Motion Graphics', 'desc' => 'Animated logos, promotional graphics and short-form motion assets that bring your brand to life.'],
-            ] as $service)
+            @foreach ($designServices as $service)
                 <article class="reveal rounded-2xl border border-line bg-panel p-8 transition-colors hover:border-accent/50" style="--reveal-delay: {{ ($loop->index % 3) * 0.08 }}s">
                     <p class="font-display text-4xl font-extrabold text-stroke">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</p>
                     <h3 class="mt-6 font-display text-xl font-bold">{{ $service['title'] }}</h3>
@@ -100,6 +129,25 @@
         </div>
     </section>
 
+    {{-- Related services --}}
+    <section class="border-t border-line">
+        <div class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-muted">Related services</p>
+            <h2 class="mt-4 max-w-3xl font-display text-[clamp(2rem,4.5vw,3.25rem)] font-extrabold">Take your brand further</h2>
+            <div class="mt-12 grid gap-6 md:grid-cols-3">
+                @foreach ($relatedServices as $serviceSlug => $relatedService)
+                    <a href="{{ route('services.show', $serviceSlug) }}" data-testid="related-service" class="group flex flex-col justify-between rounded-2xl border border-line bg-panel p-8 transition-colors hover:border-accent/50">
+                        <div>
+                            <h3 class="font-display text-xl font-bold transition-colors group-hover:text-accent">{{ $relatedService['nav_label'] }}</h3>
+                            <p class="mt-3 text-sm leading-relaxed text-muted">{{ $relatedService['nav_summary'] }}</p>
+                        </div>
+                        <span class="mt-6 text-sm font-semibold text-bone transition-colors group-hover:text-accent">Explore {{ $relatedService['nav_label'] }} &rarr;</span>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
     {{-- CTA --}}
     <section class="border-t border-line">
         <div class="mx-auto max-w-7xl px-5 py-24 text-center sm:px-8 sm:py-32">
@@ -111,7 +159,7 @@
                 Share your goals, required deliverables and timeline. Our team will review the brief and recommend the right next step.
             </p>
             <div class="reveal mt-8" style="--reveal-delay: .1s">
-                <a href="{{ route('contact') }}" class="group inline-flex items-center gap-3 rounded-full bg-primary px-8 py-4 font-semibold text-white transition-transform hover:scale-105">
+                <a href="{{ route('contact', ['service' => 'Graphic Design & Branding']) }}" class="group inline-flex items-center gap-3 rounded-full bg-primary px-8 py-4 font-semibold text-white transition-transform hover:scale-105">
                     Brief our design team
                     <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
                 </a>

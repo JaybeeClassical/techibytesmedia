@@ -1,6 +1,12 @@
+@php
+    $breadcrumbs = [['name' => 'Contact', 'url' => route('contact')]];
+@endphp
+
 <x-layout
     title="Contact Us — Abuja & Seattle | Techibytes Media"
     description="Talk to Techibytes Media about your next website, app, brand or campaign. Offices in Abuja, Nigeria and Seattle, USA."
+    page-type="ContactPage"
+    :breadcrumbs="$breadcrumbs"
 >
     @push('head')
         <link rel="preconnect" href="https://challenges.cloudflare.com">
@@ -12,6 +18,8 @@
         <x-hero-grid />
 
         <div class="relative mx-auto max-w-7xl px-5 sm:px-8">
+            <x-breadcrumbs :items="$breadcrumbs" class="reveal" />
+
             <p class="reveal text-xs font-semibold uppercase tracking-[0.35em] text-accent">Contact</p>
             <h1 class="reveal mt-5 max-w-4xl font-display text-[clamp(2.5rem,7vw,5.5rem)] font-extrabold leading-[1.02]" style="--reveal-delay: .1s">
                 Let's talk about <span class="text-accent">your project.</span>
@@ -101,8 +109,8 @@
                                 class="w-full appearance-none rounded-xl border border-line bg-panel px-5 py-4 text-bone focus:border-primary focus:outline-none"
                             >
                                 <option value="">Select a service&hellip;</option>
-                                @foreach (['Web Development', 'Mobile App Development', 'UI/UX Design', 'Digital Marketing', 'SEO', 'Branding & Graphics', 'Not sure yet'] as $option)
-                                    <option value="{{ $option }}" @selected(old('service') === $option)>{{ $option }}</option>
+                                @foreach (['Web Development', 'Custom Software Development', 'Mobile App Development', 'Brand Strategy', 'Media Buying & Digital Marketing', 'SEO', 'Graphic Design & Branding', 'UI/UX Design', 'Not sure yet'] as $option)
+                                    <option value="{{ $option }}" @selected(old('service', request()->query('service')) === $option)>{{ $option }}</option>
                                 @endforeach
                             </select>
                         </div>

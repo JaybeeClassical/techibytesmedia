@@ -57,6 +57,42 @@ if (menuToggle && mobileMenu) {
     });
 }
 
+// Services dropdown: hover and keyboard focus are handled in CSS; the chevron
+// button toggles it for touch screens and screen readers
+document.querySelectorAll('[data-dropdown]').forEach((dropdown) => {
+    const toggle = dropdown.querySelector('[data-dropdown-toggle]');
+
+    if (!toggle) {
+        return;
+    }
+
+    const setOpen = (open) => {
+        dropdown.toggleAttribute('data-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+    };
+
+    toggle.addEventListener('click', () => setOpen(!dropdown.hasAttribute('data-open')));
+
+    dropdown.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && dropdown.hasAttribute('data-open')) {
+            setOpen(false);
+            toggle.focus();
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!dropdown.contains(event.target)) {
+            setOpen(false);
+        }
+    });
+
+    dropdown.addEventListener('focusout', (event) => {
+        if (!dropdown.contains(event.relatedTarget)) {
+            setOpen(false);
+        }
+    });
+});
+
 // Theme toggle — light by default, choice persisted per visitor (see head script in layout)
 const themeToggle = document.getElementById('theme-toggle');
 

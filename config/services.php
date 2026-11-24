@@ -59,4 +59,14 @@ return [
         'action' => 'contact',
         'verify_url' => 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
     ],
+
+    'wordpress' => [
+        // Base URL of the WordPress site that hosts the blog, e.g. https://cms.techibytesmedia.com
+        'url' => env('WORDPRESS_URL'),
+        // How long fetched posts are cached before WordPress is asked again
+        'cache_seconds' => (int) env('WORDPRESS_CACHE_SECONDS', 600),
+        // Shared secret WordPress sends to /blog/refresh when a post changes
+        'webhook_secret' => env('WORDPRESS_WEBHOOK_SECRET'),
+        'per_page' => 9,
+    ],
 ];

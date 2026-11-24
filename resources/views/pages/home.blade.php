@@ -175,15 +175,15 @@
 
             <div class="divide-y divide-line border-y border-line">
                 @foreach ([
-                    ['no' => '01', 'title' => 'Web Development', 'desc' => 'Fast, secure, search-friendly websites and web apps built on modern stacks.', 'tags' => 'Laravel · React · TypeScript'],
-                    ['no' => '02', 'title' => 'Mobile App Development', 'desc' => 'Native-quality iOS and Android apps that users keep coming back to.', 'tags' => 'iOS · Android · Cross-platform'],
-                    ['no' => '03', 'title' => 'UI/UX Design', 'desc' => 'Research-driven interfaces designed to convert, delight and retain.', 'tags' => 'Product design · Prototyping'],
-                    ['no' => '04', 'title' => 'Digital Marketing', 'desc' => 'Campaigns across search and social that turn attention into revenue.', 'tags' => 'PPC · Social · Content'],
-                    ['no' => '05', 'title' => 'SEO', 'desc' => 'Technical and content SEO that puts your brand on page one and keeps it there.', 'tags' => 'Technical SEO · Local SEO'],
-                    ['no' => '06', 'title' => 'Branding & Graphics', 'desc' => 'Identities, graphics and campaign visuals that make brands unmistakable.', 'tags' => 'Identity · Print · Motion'],
-                    ['no' => '07', 'title' => 'Strategy & Publications', 'desc' => 'Data-driven strategy and publications across top blogs and media that drive sustainable growth.', 'tags' => 'Strategy · PR · Media'],
+                    ['no' => '01', 'title' => 'Web Development', 'desc' => 'Fast, secure, search-friendly websites and custom website design that turns visitors into customers.', 'tags' => 'Laravel · React · WordPress', 'url' => route('services.show', 'web-development')],
+                    ['no' => '02', 'title' => 'Software Development', 'desc' => 'Custom software and web apps: SaaS products, portals, dashboards and integrations.', 'tags' => 'Web apps · SaaS · APIs', 'url' => route('services.show', 'software-development')],
+                    ['no' => '03', 'title' => 'Mobile App Development', 'desc' => 'Native-quality iOS and Android apps that users keep coming back to.', 'tags' => 'iOS · Android · Cross-platform', 'url' => route('services.show', 'mobile-app-development')],
+                    ['no' => '04', 'title' => 'Brand Strategy', 'desc' => 'Positioning, messaging and identity that make your business the obvious choice.', 'tags' => 'Positioning · Messaging', 'url' => route('services.show', 'brand-strategy')],
+                    ['no' => '05', 'title' => 'Media & Advertising', 'desc' => 'Media buying and digital marketing across search, social and publications that turn spend into revenue.', 'tags' => 'Paid search · Social · PR', 'url' => route('services.show', 'media-ad')],
+                    ['no' => '06', 'title' => 'SEO', 'desc' => 'Technical, local and content SEO that puts your brand on page one and keeps it there.', 'tags' => 'Technical SEO · Local SEO', 'url' => route('services.show', 'seo')],
+                    ['no' => '07', 'title' => 'Graphic Design & Branding', 'desc' => 'Identities, graphics and campaign visuals that make brands unmistakable.', 'tags' => 'Identity · Print · Motion', 'url' => route('graphics')],
                 ] as $service)
-                    <a href="{{ route('services') }}" class="group reveal grid gap-3 py-8 transition-colors sm:grid-cols-12 sm:items-center sm:gap-6">
+                    <a href="{{ $service['url'] }}" class="group reveal grid gap-3 py-8 transition-colors sm:grid-cols-12 sm:items-center sm:gap-6">
                         <span class="font-display text-sm font-bold text-muted sm:col-span-1">{{ $service['no'] }}</span>
                         <h3 class="font-display text-2xl font-bold transition-colors group-hover:text-accent sm:col-span-4 sm:text-3xl">
                             {{ $service['title'] }}
@@ -217,8 +217,8 @@
             </div>
 
             <div class="grid gap-6 md:grid-cols-2">
-                @foreach ($recentProjects as $project)
-                    <a href="{{ $project['url'] }}" target="_blank" rel="noopener noreferrer" @class(['group reveal block', 'md:mt-16' => $loop->index % 2 === 1])>
+                @foreach ($recentProjects as $projectKey => $project)
+                    <a href="{{ route('portfolio.show', $projectKey) }}" @class(['group reveal block', 'md:mt-16' => $loop->index % 2 === 1])>
                         <div class="relative aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-panel">
                             <img
                                 src="{{ asset($project['screenshot']) }}"
@@ -230,7 +230,7 @@
                                 class="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.02] motion-reduce:transform-none motion-reduce:transition-none"
                             >
                             <div class="absolute inset-0 bg-gradient-to-t from-ink/35 via-transparent to-transparent"></div>
-                            <span class="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-bone/10 text-lg opacity-0 backdrop-blur transition-opacity group-hover:opacity-100" aria-hidden="true">&nearr;</span>
+                            <span class="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-bone/10 text-lg opacity-0 backdrop-blur transition-opacity group-hover:opacity-100" aria-hidden="true">&rarr;</span>
                             <span class="absolute bottom-5 left-5 font-display text-6xl font-extrabold text-stroke opacity-60">
                                 {{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}
                             </span>
@@ -324,9 +324,9 @@
 
             <div class="mt-14 grid gap-6 lg:grid-cols-3">
                 @foreach ([
-                    ['quote' => 'Techibytes Media transformed our online presence completely. Their attention to detail and understanding of our business goals resulted in a website that truly represents our brand.', 'name' => 'Uche Umeh', 'role' => 'CEO, Scholarly Africa'],
-                    ['quote' => 'Working with this team was an absolute pleasure. They delivered beyond our expectations and provided valuable insights that helped us achieve a 200% increase in conversions.', 'name' => 'Oge Destiny', 'role' => 'CEO, Billswaka App'],
-                    ['quote' => 'The level of professionalism and creativity is unmatched. Our new e-commerce platform is not only beautiful but also incredibly functional. Sales have increased by 150% since launch.', 'name' => 'Justice Kay', 'role' => 'Founder, Value Lead Africa'],
+                    ['quote' => 'Techibytes Media transformed our online presence completely. Their attention to detail and understanding of our business goals resulted in a website that truly represents our brand.', 'name' => 'Uche Umeh', 'role' => 'CEO, Scholarly Africa', 'case' => 'scholarly'],
+                    ['quote' => 'Working with this team was an absolute pleasure. They delivered beyond our expectations and provided valuable insights that helped us achieve a 200% increase in conversions.', 'name' => 'Oge Destiny', 'role' => 'CEO, Billswaka App', 'case' => 'billswaka'],
+                    ['quote' => 'The level of professionalism and creativity is unmatched. Our new e-commerce platform is not only beautiful but also incredibly functional. Sales have increased by 150% since launch.', 'name' => 'Justice Kay', 'role' => 'Founder, Value Lead Africa', 'case' => null],
                 ] as $testimonial)
                     <figure class="reveal flex flex-col justify-between rounded-2xl border border-line bg-panel p-8" style="--reveal-delay: {{ ($loop->index) * 0.1 }}s">
                         <div>
@@ -339,6 +339,9 @@
                         <figcaption class="mt-8 border-t border-line pt-5">
                             <p class="font-semibold">{{ $testimonial['name'] }}</p>
                             <p class="text-sm text-muted">{{ $testimonial['role'] }}</p>
+                            @if ($testimonial['case'])
+                                <a href="{{ route('portfolio.show', $testimonial['case']) }}" class="link-draw mt-3 inline-block text-sm font-semibold text-accent">Read the case study &rarr;</a>
+                            @endif
                         </figcaption>
                     </figure>
                 @endforeach

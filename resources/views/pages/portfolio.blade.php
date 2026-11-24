@@ -1,6 +1,22 @@
+@use('App\Support\StructuredData')
+
+@php
+    $pageUrl = StructuredData::url(route('portfolio', absolute: false));
+    $breadcrumbs = [['name' => 'Work', 'url' => route('portfolio')]];
+    $caseStudies = collect(config('projects.items', []))
+        ->map(fn (array $project, string $key): array => ['name' => $project['title'], 'url' => route('portfolio.show', $key)])
+        ->values()
+        ->all();
+    $schema = [StructuredData::itemList($pageUrl.'#case-studies', 'Techibytes Media case studies', $caseStudies)];
+@endphp
+
 <x-layout
     title="Our Work & Portfolio | Techibytes Media"
     description="Selected projects by Techibytes Media — websites, mobile apps, platforms and brands built for clients in Nigeria, the USA and beyond."
+    page-type="CollectionPage"
+    :breadcrumbs="$breadcrumbs"
+    :schema="$schema"
+    :main-entity="$pageUrl.'#case-studies'"
 >
 
     {{-- Page hero --}}
@@ -8,6 +24,8 @@
         <x-hero-grid />
 
         <div class="relative mx-auto max-w-7xl px-5 sm:px-8">
+            <x-breadcrumbs :items="$breadcrumbs" class="reveal" />
+
             <p class="reveal text-xs font-semibold uppercase tracking-[0.35em] text-accent">Portfolio</p>
             <h1 class="reveal mt-5 max-w-4xl font-display text-[clamp(2.5rem,7vw,5.5rem)] font-extrabold leading-[1.02]" style="--reveal-delay: .1s">
                 Work that <span class="text-accent">works.</span>
@@ -23,9 +41,9 @@
     <section class="border-t border-line">
         <div class="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
             <div class="grid gap-x-6 gap-y-16 md:grid-cols-2">
-                @foreach (config('projects.items') as $project)
+                @foreach (config('projects.items') as $projectKey => $project)
                     <article @class(['group reveal', 'md:mt-20' => $loop->index % 2 === 1, 'md:-mt-20' => $loop->index % 2 === 0 && ! $loop->first])>
-                        <a href="{{ $project['url'] }}" target="_blank" rel="noopener noreferrer" class="block">
+                        <a href="{{ route('portfolio.show', $projectKey) }}" class="block">
                             <div class="relative aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-panel">
                                 <img
                                     src="{{ asset($project['screenshot']) }}"
@@ -51,10 +69,24 @@
                                 <h2 class="mt-3 font-display text-xl font-bold transition-colors group-hover:text-accent sm:text-2xl">{{ $project['title'] }}</h2>
                             </div>
                             <p class="mt-2 text-sm text-muted"><span class="text-accent">&#10022;</span> {{ $project['result'] }}</p>
+                            <p class="mt-4 text-sm font-semibold text-bone transition-colors group-hover:text-accent">Read the case study &rarr;</p>
                         </a>
                     </article>
                 @endforeach
             </div>
+        </div>
+    </section>
+
+    {{-- Services behind the work --}}
+    <section class="border-t border-line">
+        <div class="mx-auto max-w-7xl px-5 py-16 sm:px-8">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-muted">The services behind this work</p>
+            <ul class="mt-6 flex flex-wrap gap-3">
+                @foreach (config('service-pages.items', []) as $serviceSlug => $serviceItem)
+                    <li><a href="{{ route('services.show', $serviceSlug) }}" class="inline-flex rounded-full border border-line bg-panel px-5 py-2.5 text-sm font-semibold text-bone transition-colors hover:border-accent/50 hover:text-accent">{{ $serviceItem['nav_label'] }}</a></li>
+                @endforeach
+                <li><a href="{{ route('graphics') }}" class="inline-flex rounded-full border border-line bg-panel px-5 py-2.5 text-sm font-semibold text-bone transition-colors hover:border-accent/50 hover:text-accent">Graphic Design</a></li>
+            </ul>
         </div>
     </section>
 
